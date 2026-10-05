@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Licence renewals</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #e9eeec;
+    --surface: #ffffff;
+    --ink: #15222c;
+    --muted: #5d6a72;
+    --rule: #d3dbd8;
+    --accent: #0f5552;
+    --overdue: #a8261d;
+    --overdue-bg: #fbe9e7;
+    --due: #8a5300;
+    --due-bg: #fdf1dc;
+    --upcoming: #2c6440;
+    --upcoming-bg: #e6f2ea;
+    --none: #6b7378;
+    --none-bg: #eceff0;
+    --serif: "Fraunces", Georgia, "Times New Roman", serif;
+    --sans: "Public Sans", "Segoe UI", Arial, sans-serif;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *, *::before, *::after { box-sizing: inherit; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--sans); }
+  button, input { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 40px 20px 64px; }
+
+  header.top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 28px; }
+  h1 { font: 600 2.4rem/1.1 var(--serif); margin: 0; letter-spacing: -0.01em; }
+  .today { color: var(--muted); margin: 6px 0 0; }
+
+  .btn { border: 1px solid var(--accent); background: var(--accent); color: #fff; padding: 9px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; }
+  .btn:hover { background: #0b4441; }
+  .btn.ghost { background: transparent; color: var(--accent); }
+  .btn.ghost:hover { background: #dbe6e3; }
+  .btn[disabled] { opacity: .6; cursor: progress; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 18px; }
+  .filters { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { border: 1px solid var(--rule); background: var(--surface); padding: 6px 12px; border-radius: 999px; cursor: pointer; font-size: .9rem; }
+  .chip[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: #fff; }
+  .chip .n { opacity: .7; margin-left: 4px; }
+  .search { margin-left: auto; min-width: 220px; flex: 0 1 280px; padding: 8px 12px; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface); }
+
+  .notice { padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; background: var(--surface); border-left: 4px solid var(--accent); }
+  .notice.error { border-left-color: var(--overdue); }
+
+  ol.list { list-style: none; margin: 0; padding: 0; background: var(--surface); border-radius: 10px; overflow: hidden; border: 1px solid var(--rule); }
+  .row { display: grid; grid-template-columns: 84px minmax(0, 1fr) 210px; gap: 20px; align-items: center; padding: 16px 20px; border-top: 1px solid var(--rule); }
+  .row:first-child { border-top: 0; }
+
+  .leaf { text-align: center; border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; width: 72px; }
+  .leaf .mon { display: block; font-size: .78rem; font-weight: 600; padding: 3px 0; color: #fff; background: var(--none); }
+  .leaf .day { display: block; font: 600 1.7rem/1.25 var(--serif); padding-top: 2px; }
+  .leaf .yr { display: block; font-size: .75rem; color: var(--muted); padding-bottom: 4px; }
+  .s-overdue .leaf .mon { background: var(--overdue); }
+  .s-due .leaf .mon { background: var(--due); }
+  .s-upcoming .leaf .mon { background: var(--accent); }
+  .leaf.blank .day { font-size: 1.1rem; padding: 10px 0 12px; color: var(--muted); }
+
+  .name { font: 600 1.12rem/1.3 var(--serif); margin: 0; }
+  .owner { margin: 2px 0 6px; color: var(--muted); }
+  .meta { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { font-size: .8rem; padding: 2px 8px; border-radius: 4px; background: var(--none-bg); color: var(--ink); }
+
+  .when { text-align: right; }
+  .when .label { display: block; font-size: .8rem; color: var(--muted); }
+  .when .date { display: block; font-weight: 600; }
+  .status { display: inline-block; margin-top: 6px; font-size: .8rem; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
+  .s-overdue .status { background: var(--overdue-bg); color: var(--overdue); }
+  .s-due .status { background: var(--due-bg); color: var(--due); }
+  .s-upcoming .status { background: var(--upcoming-bg); color: var(--upcoming); }
+  .s-missing .status, .s-invalid .status { background: var(--none-bg); color: var(--none); }
+  .sent { display: block; font-size: .8rem; color: var(--muted); margin-top: 4px; }
+
+  .empty { padding: 32px 20px; text-align: center; color: var(--muted); }
+
+  .login { max-width: 380px; margin: 12vh auto 0; background: var(--surface); padding: 28px; border-radius: 10px; border: 1px solid var(--rule); }
+  .login h1 { font-size: 1.8rem; margin-bottom: 6px; }
+  .login p { color: var(--muted); margin: 0 0 18px; }
+  .login input { width: 100%; padding: 10px 12px; border: 1px solid var(--rule); border-radius: 6px; margin-bottom: 12px; }
+  .login .err { color: var(--overdue); min-height: 1.5em; margin: 0 0 8px; }
+
+  @media (max-width: 720px) {
+    h1 { font-size: 1.9rem; }
+    .row { grid-template-columns: 72px minmax(0, 1fr); gap: 14px; }
+    .leaf { width: 64px; }
+    .when { grid-column: 2; text-align: left; }
+    .search { margin-left: 0; flex: 1 1 100%; }
+  }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<section class="login" id="login" hidden>
+  <h1>Licence renewals</h1>
+  <p>Enter the dashboard password to continue.</p>
+  <form id="loginForm">
+    <input type="password" id="pw" autocomplete="current-password" aria-label="Password" required>
+    <p class="err" id="loginErr" role="alert"></p>
+    <button class="btn" type="submit">Open dashboard</button>
+  </form>
+</section>
+
+<main class="wrap" id="app" hidden>
+  <header class="top">
+    <div>
+      <h1>Licence renewals</h1>
+      <p class="today" id="today"></p>
+    </div>
+    <div class="actions">
+      <button class="btn ghost" id="refresh" type="button">Refresh</button>
+      <button class="btn" id="runNow" type="button">Run reminder check</button>
+    </div>
+  </header>
+
+  <div id="notice"></div>
+
+  <div class="toolbar">
+    <div class="filters" id="filters" role="group" aria-label="Filter by status"></div>
+    <input class="search" id="search" type="search" placeholder="Search entity, owner or authority" aria-label="Search">
+  </div>
+
+  <ol class="list" id="list" aria-live="polite"></ol>
+</main>
+
+<script>
+(function () {
+  var MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  var SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  var STATUS_LABEL = { overdue: "Renewal overdue", due: "Reminder period", upcoming: "Upcoming", missing: "No issuance date", invalid: "Date not recognised" };
+  var FILTERS = [
+    { key: "all", label: "All" },
+    { key: "due", label: "Reminder period" },
+    { key: "overdue", label: "Overdue" },
+    { key: "upcoming", label: "Upcoming" },
+    { key: "nodate", label: "Date problems" }
+  ];
+
+  var state = { entities: [], today: null, filter: "all", query: "" };
+  var $ = function (id) { return document.getElementById(id); };
+
+  function getPw() { try { return sessionStorage.getItem("dash-pw") || ""; } catch (e) { return ""; } }
+  function setPw(v) { try { if (v) sessionStorage.setItem("dash-pw", v); else sessionStorage.removeItem("dash-pw"); } catch (e) {} }
+
+  function parseIso(s) { var p = s.split("-").map(Number); return { y: p[0], m: p[1], d: p[2] }; }
+  function longDate(s) { var p = parseIso(s); return String(p.d).padStart(2, "0") + " " + MONTHS[p.m - 1] + " " + p.y; }
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+
+  function relative(days) {
+    if (days === 0) return "today";
+    if (days === 1) return "tomorrow";
+    if (days === -1) return "yesterday";
+    return days > 0 ? "in " + days + " days" : Math.abs(days) + " days ago";
+  }
+
+  function showNotice(msg, isError) {
+    $("notice").innerHTML = msg ? '<div class="notice' + (isError ? " error" : "") + '" role="status">' + msg + "</div>" : "";
+  }
+
+  async function api(path, opts) {
+    opts = opts || {};
+    opts.headers = Object.assign({ "x-dashboard-password": getPw() }, opts.headers || {});
+    var res = await fetch(path, opts);
+    var body = await res.json().catch(function () { return {}; });
+    if (res.status === 401) { var err = new Error(body.error || "Unauthorised"); err.auth = true; throw err; }
+    if (!res.ok) throw new Error(body.error || "Request failed (HTTP " + res.status + ").");
+    return body;
+  }
+
+  function matchesFilter(e) {
+    if (state.filter === "all") return true;
+    if (state.filter === "nodate") return e.status === "missing" || e.status === "invalid";
+    return e.status === state.filter;
+  }
+
+  function matchesQuery(e) {
+    var q = state.query.trim().toLowerCase();
+    if (!q) return true;
+    return [e.corporate, e.ubo, e.authority, e.type].join(" ").toLowerCase().indexOf(q) !== -1;
+  }
+
+  function renderFilters() {
+    var counts = { all: state.entities.length, due: 0, overdue: 0, upcoming: 0, nodate: 0 };
+    state.entities.forEach(function (e) {
+      if (e.status === "missing" || e.status === "invalid") counts.nodate++;
+      else counts[e.status]++;
+    });
+    $("filters").innerHTML = FILTERS.map(function (f) {
+      return '<button type="button" class="chip" data-f="' + f.key + '" aria-pressed="' + (state.filter === f.key) + '">' +
+        esc(f.label) + '<span class="n">' + counts[f.key] + "</span></button>";
+    }).join("");
+  }
+
+  function leaf(e) {
+    if (!e.reminder) return '<div class="leaf blank" aria-hidden="true"><span class="mon">&nbsp;</span><span class="day">?</span></div>';
+    var p = parseIso(e.reminder);
+    return '<div class="leaf" aria-hidden="true"><span class="mon">' + SHORT[p.m - 1] + '</span><span class="day">' + p.d +
+      '</span><span class="yr">' + p.y + "</span></div>";
+  }
+
+  function rowHtml(e) {
+    var tags = [e.type, e.authority].filter(Boolean).map(function (t) { return '<span class="tag">' + esc(t) + "</span>"; });
+    if (e.issued) tags.push('<span class="tag">Issued ' + esc(longDate(e.issued)) + "</span>");
+    else if (e.issuedRaw) tags.push('<span class="tag">Issued "' + esc(e.issuedRaw) + '"</span>');
+
+    var when;
+    if (e.renewal) {
+      when = '<span class="label">Reminder ' + esc(longDate(e.reminder)) + "</span>" +
+        '<span class="label" style="margin-top:4px">Renewal</span>' +
+        '<span class="date">' + esc(longDate(e.renewal)) + "</span>" +
+        '<span class="label">' + relative(e.daysToRenewal) + "</span>";
+    } else {
+      when = '<span class="label">Check sheet row ' + e.rowNumber + "</span>";
+    }
+    when += '<span class="status">' + STATUS_LABEL[e.status] + "</span>";
+    if (e.emailSentAt) when += '<span class="sent">Email sent ' + esc(longDate(e.emailSentAt.slice(0, 10))) + "</span>";
+
+    return '<li class="row s-' + e.status + '">' + leaf(e) +
+      "<div><p class=\"name\">" + esc(e.corporate || "Unnamed entity") + "</p>" +
+      '<p class="owner">' + esc(e.ubo) + "</p>" +
+      '<div class="meta">' + tags.join("") + "</div></div>" +
+      '<div class="when">' + when + "</div></li>";
+  }
+
+  function render() {
+    renderFilters();
+    var rows = state.entities.filter(function (e) { return matchesFilter(e) && matchesQuery(e); });
+    $("list").innerHTML = rows.length ? rows.map(rowHtml).join("") : '<li class="empty">No entities match this view.</li>';
+    if (state.today) $("today").textContent = "Today is " + longDate(state.today) + ". Sorted by reminder date, soonest first.";
+  }
+
+  async function load() {
+    showNotice("");
+    $("list").innerHTML = '<li class="empty">Loading the sheet...</li>';
+    try {
+      var data = await api("/api/entities");
+      state.entities = data.entities;
+      state.today = data.today;
+      render();
+    } catch (err) {
+      if (err.auth) return showLogin("The password is incorrect.");
+      $("list").innerHTML = "";
+      showNotice(esc(err.message), true);
+    }
+  }
+
+  async function runNow() {
+    var btn = $("runNow");
+    btn.disabled = true;
+    btn.textContent = "Checking...";
+    try {
+      var r = await api("/api/run-now", { method: "POST" });
+      var parts = [];
+      parts.push(r.sent.length ? "Sent " + r.sent.length + " reminder" + (r.sent.length > 1 ? "s" : "") + ": " + esc(r.sent.join(", ")) + "." : "No new reminders were due.");
+      if (r.failed.length) parts.push("Failed: " + r.failed.map(function (f) { return esc(f.corporate) + " (" + esc(f.error) + ")"; }).join("; ") + ".");
+      await load();
+      showNotice(parts.join(" "), r.failed.length > 0);
+    } catch (err) {
+      if (err.auth) return showLogin("The password is incorrect.");
+      showNotice(esc(err.message), true);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Run reminder check";
+    }
+  }
+
+  function showLogin(msg) {
+    setPw("");
+    $("app").hidden = true;
+    $("login").hidden = false;
+    $("loginErr").textContent = msg || "";
+    $("pw").focus();
+  }
+
+  function showApp() {
+    $("login").hidden = true;
+    $("app").hidden = false;
+    load();
+  }
+
+  $("loginForm").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    setPw($("pw").value);
+    $("pw").value = "";
+    showApp();
+  });
+  $("filters").addEventListener("click", function (ev) {
+    var b = ev.target.closest("[data-f]");
+    if (!b) return;
+    state.filter = b.getAttribute("data-f");
+    render();
+  });
+  $("search").addEventListener("input", function (ev) { state.query = ev.target.value; render(); });
+  $("refresh").addEventListener("click", load);
+  $("runNow").addEventListener("click", runNow);
+
+  if (getPw()) showApp(); else showLogin();
+})();
+</script>
+</body>
+</html>
